@@ -267,7 +267,7 @@ object Scenes extends TableQuery(tag => new Scenes(tag)) with LazyLogging {
     * @param sceneId java.util.UUID ID of scene to query with
     */
   def getSceneForCaching(sceneId: UUID)
-                        (implicit database: DB): Future[Option[Scene.WithRelated]] = {
+    (implicit database: DB): Future[Option[Scene.WithRelated]] = {
 
     database.db.run {
       Scenes
@@ -276,6 +276,17 @@ object Scenes extends TableQuery(tag => new Scenes(tag)) with LazyLogging {
         .result
     } map { result =>
       Scene.WithRelated.fromRecords(result).headOption
+    }
+  }
+
+  def listProjectScenes(projectId: UUID)(implicit database: DB): Future[Seq[Scene.WithRelated]] = {
+    database.db.run {
+      Scenes
+        .filterByProject(projectId)
+        .joinWithRelated
+        .result
+    } map { result =>
+      Scene.WithRelated.fromRecords(result).toSeq
     }
   }
 
@@ -546,6 +557,14 @@ class ScenesTableQuery[M, U, C[_]](scenes: Scenes.TableQuery) extends LazyLoggin
       case _ => {
         filteredScenes
       }
+    }
+  }
+
+  def filterByProject(projectId: UUID): Scenes.TableQuery = {
+    scenes.filter { scene =>
+      scene.id in ScenesToProjects
+        .filter(_.projectId === projectId)
+        .map(_.sceneId)
     }
   }
 

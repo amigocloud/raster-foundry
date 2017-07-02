@@ -192,6 +192,8 @@ object Mosaic {
     }
   }
 
+
+
   /** Mosaic tiles from TMS pyramids given that they are in the same projection.
     *   If a layer does not go up to requested zoom it will be up-sampled.
     *   Layers missing color correction in the mosaic definition will be excluded.

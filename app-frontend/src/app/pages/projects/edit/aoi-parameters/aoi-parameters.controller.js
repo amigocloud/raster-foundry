@@ -70,10 +70,25 @@ export default class AOIParametersController {
         this.projectLoaded = false;
         this.isProjectAoisDrawn = false;
         this.aoiProjectParameters = {};
-        this.aoiParamters = {};
         this.drawOptions = {
             areaType: 'interest',
             requirePolygons: true
+        };
+        this.aoiParameters = {
+            'orgParams': {
+                'organizations': []
+            },
+            'userParams': {},
+            'imageParams': {
+                'scene': []
+            },
+            'sceneParams': {
+                'month': [],
+                'datasource': [],
+                'ingestStatus': [],
+                'maxCloudCover': 10
+            },
+            'timestampParams': {}
         };
 
         this.$q.all({
@@ -81,9 +96,12 @@ export default class AOIParametersController {
             aois: this.fetchProjectAOIs()
         }).then((result) => {
             this.project = result.project;
+
             this.aoiProjectParameters = {
+                // Default cadence on frontend
                 aoiCadenceMillis: this.project.aoiCadenceMillis ||
                     604800000,
+                // Default to start of day if not set on project
                 aoisLastChecked: this.Moment(this.project.aoisLastChecked) ||
                     this.Moment().startOf('day')
             };

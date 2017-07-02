@@ -150,6 +150,20 @@ object ScenesToProjects extends TableQuery(tag => new ScenesToProjects(tag)) wit
     }.map(_.headOption)
   }
 
+  def getColorCorrectParams2(projectId: UUID, sceneId: UUID)(implicit database: DB): Future[Option[ColorCorrect.Params]] = {
+    val x = database.db.run {
+      ScenesToProjects
+        .filter({ s2p => s2p.projectId === projectId && s2p.sceneId === sceneId })
+        .map(_.colorCorrectParams)
+        .result
+    }.map{ result =>
+      result.headOption match {
+        case Some(x) => x
+        case _ => None
+      }
+    }
+    x
+  }
   /** Get the complete mosaic definition for a giving project */
   def getMosaicDefinition(projectId: UUID)(implicit database: DB): Future[Option[Seq[MosaicDefinition]]] = {
     database.db.run {

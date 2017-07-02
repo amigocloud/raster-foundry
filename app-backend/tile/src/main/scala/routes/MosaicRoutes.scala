@@ -92,9 +92,8 @@ object MosaicRoutes
             get {
               complete {
                 val future =
-                  Mosaic(projectId, zoom, x, y, tag)
+                  SimpleTileServer.getMosaic(projectId, zoom, x, y)
                     .map(_.renderPng)
-                    .getOrElse(emptyTilePng)
                     .map(pngAsHttpResponse)
 
                 future onComplete {

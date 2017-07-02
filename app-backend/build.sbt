@@ -157,11 +157,13 @@ lazy val common = Project("common", file("common"))
     Dependencies.caffeine,
     Dependencies.scaffeine,
     Dependencies.elasticacheClient,
+    Dependencies.scalacache,
     Dependencies.geotrellisS3,
     Dependencies.findbugAnnotations,
     Dependencies.ammoniteOps,
     Dependencies.chill,
-    Dependencies.cats
+    Dependencies.cats,
+    "com.github.cb372" %% "scalacache-caffeine" % "0.9.4"
   )})
 
 lazy val migrations = Project("migrations", file("migrations"))
