@@ -34,11 +34,14 @@ export default class DiagramContainerController {
                 <div class="diagram-cell ">
                   <rf-diagram-node-header
                     data-model="model"
-                    data-invalid="model.get('cellType') === 'Input'"
+                    data-invalid="model.get('invalid')"
                     data-menu-options="menuOptions"
-                    >
-                  </rf-diagram-node-header>
-                  <div class="node-body"></div>
+                  ></rf-diagram-node-header>
+                  <rf-input-node
+                    ng-if="model.get('cellType') === 'Input'"
+                    data-model="model"
+                    on-change="onChange({sourceId: sourceId, project: project, band: band})"
+                  ></rf-input-node>
                 </div>
         `,
             initialize: function () {
@@ -60,6 +63,8 @@ export default class DiagramContainerController {
             updateBox: function () {
                 let bbox = this.model.getBBox();
                 this.scope.model = this.model;
+                this.scope.onChange = this.model.get('onChange');
+                this.scope.sourceId = this.model.get('id');
 
                 this.$box.css({
                     width: bbox.width,
@@ -75,9 +80,9 @@ export default class DiagramContainerController {
 
         this.workspaceElement = this.$element[0].children[0];
         this.comparison = [false, false];
-        this.cellSize = [300, 150];
+        this.cellSize = [400, 200];
         this.paddingFactor = 0.8;
-        this.nodeSeparationFactor = 0.25;
+        this.nodeSeparationFactor = 0.2;
         this.panActive = false;
         this.initContextMenus();
         this.extractInputs();
@@ -280,7 +285,7 @@ export default class DiagramContainerController {
     }
 
     constructRect(config) {
-        return new joint.shapes.html.Element({
+        return new joint.shapes.html.Element(Object.assign({
             id: config.id,
             size: {
                 width: this.cellSize[0],
@@ -304,7 +309,9 @@ export default class DiagramContainerController {
                 },
                 items: config.ports
             }
-        });
+        }, {
+            onChange: this.onParameterChange
+        }));
     }
 
     startComparison(id) {
