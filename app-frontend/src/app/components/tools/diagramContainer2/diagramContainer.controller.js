@@ -5,13 +5,16 @@ const Map = require('es6-map');
 
 export default class DiagramContainerController {
     constructor( // eslint-disable-line max-params
-        $element, $scope, $state, $timeout, $compile, mousetipService, toolService) {
+        $element, $scope, $state, $timeout, $compile, $document,
+        mousetipService, toolService
+    ) {
         'ngInject';
         this.$element = $element;
         this.$scope = $scope;
         this.$state = $state;
         this.$timeout = $timeout;
         this.$compile = $compile;
+        this.$document = $document;
         this.mousetipService = mousetipService;
         this.toolService = toolService;
     }
@@ -45,8 +48,7 @@ export default class DiagramContainerController {
                     data-model="model"
                     on-change="onChange({sourceId: sourceId, project: project, band: band})"
                   ></rf-input-node>
-                </div>
-        `,
+                </div>`,
             initialize: function () {
                 _.bindAll(this, 'updateBox');
                 joint.dia.ElementView.prototype.initialize.apply(this, arguments);
@@ -128,7 +130,7 @@ export default class DiagramContainerController {
                 thickness: 1
             });
             this.paper.on('blank:pointerclick', this.onPaperClick.bind(this));
-            this.paper.on('cell:pointerclick', this.onCellClick.bind(this));
+            this.paper.on('cell:pointerdown', this.onCellClick.bind(this));
             this.paper.on('blank:pointerdown', () => {
                 this.panActive = true;
                 this.$scope.$evalAsync();
@@ -324,52 +326,40 @@ export default class DiagramContainerController {
     }
 
     startComparison(id) {
+        if (this.clickListener) {
+            this.clickListener();
+        }
+
         this.mousetipService.set('Select a node to compare');
         this.isComparing = true;
         this.comparison[0] = id;
+
+        let initialClick = true;
+        const onClick = () => {
+            if (!initialClick) {
+                this.cancelComparison();
+                this.$document.off('click', this.clickListener);
+                this.$scope.$evalAsync();
+                delete this.clickListener;
+            } else {
+                initialClick = false;
+            }
+        };
+        this.clickListener = onClick;
+        this.$document.on('click', onClick);
     }
 
     continueComparison(cv) {
-        this.mousetipService.remove();
-        this.hideContextMenu();
-        this.isComparing = false;
+        this.clickListener();
         this.comparison[1] = cv.model.id;
         this.onPreview({data: this.comparison});
         this.unselectCell();
     }
 
     cancelComparison() {
-        this.hideContextMenu();
         this.isComparing = false;
+        this.unselectCell();
         this.mousetipService.remove();
-    }
-
-    showContextMenu(cv, contextMenu) {
-        this.hideContextMenu();
-
-        let bounds = cv.getBBox() || this.selectedCellView.getBBox || false;
-        let menuScope = this.$scope.$new();
-        menuScope.currentContextMenu = contextMenu ||
-                                       this.contextMenus.get(cv.model.id) ||
-                                       this.defaultContextMenu;
-
-        this.contextMenuEl = this.$compile(this.contextMenuTpl)(menuScope)[0];
-        this.$element[0].appendChild(this.contextMenuEl);
-        this.contextMenuEl = $(this.contextMenuEl).css({
-            top: bounds.y,
-            left: bounds.x + bounds.width / 2
-        });
-
-        menuScope.$evalAsync(() => {
-            menuScope.isShowingContextMenu = true;
-        });
-    }
-
-    hideContextMenu() {
-        this.isShowingContextMenu = false;
-        if (this.contextMenuEl) {
-            this.contextMenuEl.remove();
-        }
     }
 
     selectCell(model) {
