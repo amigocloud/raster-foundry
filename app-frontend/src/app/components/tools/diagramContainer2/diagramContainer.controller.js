@@ -19,6 +19,9 @@ export default class DiagramContainerController {
     $onInit() {
         let $scope = this.$scope;
         let $compile = this.$compile;
+
+        $scope.$on('$destroy', this.$onDestroy.bind(this));
+
         joint.shapes.html = {};
         joint.shapes.html.Element = joint.shapes.basic.Rect.extend({
             defaults: joint.util.deepSupplement({
@@ -88,6 +91,12 @@ export default class DiagramContainerController {
         this.extractInputs();
         this.extractShapes();
         this.initDiagram();
+    }
+
+    $onDestroy() {
+        if (this.isComparing) {
+            this.cancelComparison();
+        }
     }
 
     getToolLabel(json) {
