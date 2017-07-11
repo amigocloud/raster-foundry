@@ -78,7 +78,7 @@ object TileSources extends LazyLogging {
     extent: Extent,
     zoom: Int,
     r: RFMLRaster
-  )(implicit database: Database): Future[Option[TileProvider]] = r match {
+  )(implicit database: Database): Future[Option[TileWithNeighbors]] = r match {
     case SceneRaster(id, Some(band), maybeND) =>
       LayerCache.attributeStoreForLayer(id).mapFilter({ case (store, _) =>
         blocking {
@@ -92,7 +92,7 @@ object TileSources extends LazyLogging {
               .crop(extent)
               .tile
           } match {
-            case Success(tile) => Some(TileProvider(tile.band(band).interpretAs(maybeND.getOrElse(tile.cellType)), None))
+            case Success(tile) => Some(TileWithNeighbors(tile.band(band).interpretAs(maybeND.getOrElse(tile.cellType)), None))
             case Failure(e) =>
               logger.error(s"Query layer $id at zoom $zoom for $extent: ${e.getMessage}")
               None
@@ -103,7 +103,7 @@ object TileSources extends LazyLogging {
     case ProjectRaster(projId, Some(band), maybeND) => {
       Mosaic.rawForExtent(projId, zoom, Some(Projected(extent.toPolygon, 3857)))
         .map({ tile =>
-          TileProvider(tile.band(band).interpretAs(maybeND.getOrElse(tile.cellType)), None)
+          TileWithNeighbors(tile.band(band).interpretAs(maybeND.getOrElse(tile.cellType)), None)
         }).value
     }
 
@@ -111,11 +111,11 @@ object TileSources extends LazyLogging {
   }
 
   /** This source provides support for z/x/y TMS tiles */
-  def cachedTmsSource(r: RFMLRaster, buffer: Boolean, z: Int, x: Int, y: Int)(implicit database: Database): Future[Option[TileProvider]] =
+  def cachedTmsSource(r: RFMLRaster, buffer: Boolean, z: Int, x: Int, y: Int)(implicit database: Database): Future[Option[TileWithNeighbors]] =
     r match {
       case scene @ SceneRaster(sceneId, Some(band), maybeND) =>
         if (buffer) {
-          val provider: OptionT[Future, TileProvider] = for {
+          val tile: OptionT[Future, TileWithNeighbors] = for {
             tl <- LayerCache.layerTile(sceneId, z, SpatialKey(x - 1, y - 1))
                     .map({ tile => tile.band(band).interpretAs(maybeND.getOrElse(tile.cellType)) })
             tm <- LayerCache.layerTile(sceneId, z, SpatialKey(x, y - 1))
@@ -134,11 +134,11 @@ object TileSources extends LazyLogging {
                     .map({ tile => tile.band(band).interpretAs(maybeND.getOrElse(tile.cellType)) })
             br <- LayerCache.layerTile(sceneId, z, SpatialKey(x + 1, y + 1))
                     .map({ tile => tile.band(band).interpretAs(maybeND.getOrElse(tile.cellType)) })
-          } yield TileProvider(mm, Some(Buffers(tl, tm, tr, ml, mr,bl, bm, br)))
-          provider.value
+          } yield TileWithNeighbors(mm, Some(Buffers(tl, tm, tr, ml, mr,bl, bm, br)))
+          tile.value
         } else {
           LayerCache.layerTile(sceneId, z, SpatialKey(x, y))
-            .map({ tile => TileProvider(tile.band(band).interpretAs(maybeND.getOrElse(tile.cellType)), None) })
+            .map({ tile => TileWithNeighbors(tile.band(band).interpretAs(maybeND.getOrElse(tile.cellType)), None) })
             .value
         }
 
@@ -148,7 +148,7 @@ object TileSources extends LazyLogging {
 
       case project @ ProjectRaster(projId, Some(band), maybeND) =>
         if (buffer) {
-          val provider: OptionT[Future, TileProvider] = for {
+          val tile: OptionT[Future, TileWithNeighbors] = for {
             tl <- Mosaic.raw(projId, z, x, y)
                     .map({ tile => tile.band(band).interpretAs(maybeND.getOrElse(tile.cellType)) })
             tm <- Mosaic.raw(projId, z, x, y)
@@ -167,11 +167,11 @@ object TileSources extends LazyLogging {
                     .map({ tile => tile.band(band).interpretAs(maybeND.getOrElse(tile.cellType)) })
             br <- Mosaic.raw(projId, z, x, y)
                     .map({ tile => tile.band(band).interpretAs(maybeND.getOrElse(tile.cellType)) })
-          } yield TileProvider(mm, Some(Buffers(tl, tm, tr, ml, mr,bl, bm, br)))
-          provider.value
+          } yield TileWithNeighbors(mm, Some(Buffers(tl, tm, tr, ml, mr,bl, bm, br)))
+          tile.value
         } else {
           Mosaic.raw(projId, z, x, y)
-            .map({ tile => TileProvider(tile.band(band).interpretAs(maybeND.getOrElse(tile.cellType)), None) })
+            .map({ tile => TileWithNeighbors(tile.band(band).interpretAs(maybeND.getOrElse(tile.cellType)), None) })
             .value
         }
 

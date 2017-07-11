@@ -16,7 +16,7 @@ case class Buffers(
   br: Tile
 )
 
-case class TileProvider(centerTile: Tile, buffers: Option[Buffers], options: TileProvider.Options = TileProvider.Options.DEFAULT) {
+case class TileWithNeighbors(centerTile: Tile, buffers: Option[Buffers], options: TileWithNeighbors.Options = TileWithNeighbors.Options.DEFAULT) {
   def withBuffer(buffer: Int): Tile = buffers match {
     case Some(buf) =>
       if (buffer > 0) {
@@ -45,7 +45,7 @@ case class TileProvider(centerTile: Tile, buffers: Option[Buffers], options: Til
   }
 }
 
-object TileProvider {
+object TileWithNeighbors {
   case class Options(tileCols: Int, tileRows: Int)
   object Options {
     val DEFAULT = Options(256, 256)

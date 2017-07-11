@@ -131,11 +131,11 @@ object Interpreter extends LazyLogging {
     sourceMapping: Map[UUID, RFMLRaster],
     overrides: Map[UUID, ParamOverride],
     extent: Extent,
-    tileSource: RFMLRaster => Future[Option[TileProvider]]
+    tileSource: RFMLRaster => Future[Option[TileWithNeighbors]]
   )(implicit ec: ExecutionContext): Future[Interpreted[LazyTile]] = {
 
     @SuppressWarnings(Array("TraversableHead"))
-    def eval(tiles: Map[UUID, TileProvider], ast: MapAlgebraAST): LazyTile = ast match {
+    def eval(tiles: Map[UUID, TileWithNeighbors], ast: MapAlgebraAST): LazyTile = ast match {
 
       /* --- LEAVES --- */
       case Source(id, _) => LazyTile(tiles(id).centerTile)
@@ -214,9 +214,9 @@ object Interpreter extends LazyLogging {
       .mapValues(r => tileSource(r).map(_.toRight(r.id)).recover({ case t: Throwable => Left(r.id) }))
       .sequence
       .map({ sms =>
-        val tiles: Interpreted[Map[UUID, TileProvider]] = sms.map({
+        val tiles: Interpreted[Map[UUID, TileWithNeighbors]] = sms.map({
           case (id, Left(rid)) => (id, Invalid(NonEmptyList.of(RasterRetrievalError(id, rid))))
-          case (id, Right(provider)) => (id, Valid(provider))
+          case (id, Right(tile)) => (id, Valid(tile))
         }).sequence
 
         (pure |@| hasSources(ast) |@| overridden |@| tiles).map({
@@ -235,14 +235,14 @@ object Interpreter extends LazyLogging {
     ast: MapAlgebraAST,
     sourceMapping: Map[UUID, RFMLRaster],
     overrides: Map[UUID, ParamOverride],
-    tileSource: (RFMLRaster, Boolean, Int, Int, Int) => Future[Option[TileProvider]]
+    tileSource: (RFMLRaster, Boolean, Int, Int, Int) => Future[Option[TileWithNeighbors]]
   )(implicit ec: ExecutionContext): (Int, Int, Int) => Future[Interpreted[LazyTile]] = {
 
     (z: Int, x: Int, y: Int) => {
       lazy val extent = layouts(z).mapTransform(SpatialKey(x,y))
 
       @SuppressWarnings(Array("TraversableHead"))
-      def eval(tiles: Map[UUID, TileProvider], ast: MapAlgebraAST, buffer: Int): LazyTile = ast match {
+      def eval(tiles: Map[UUID, TileWithNeighbors], ast: MapAlgebraAST, buffer: Int): LazyTile = ast match {
 
         /* --- LEAVES --- */
         case Source(id, _) => LazyTile(tiles(id).withBuffer(buffer))
@@ -332,9 +332,9 @@ object Interpreter extends LazyLogging {
         })
         .sequence
         .map({ sms =>
-          val tiles: Interpreted[Map[UUID, TileProvider]] = sms.map({
+          val tiles: Interpreted[Map[UUID, TileWithNeighbors]] = sms.map({
             case (id, Left(rid)) => (id, Invalid(NonEmptyList.of(RasterRetrievalError(id, rid))))
-            case (id, Right(provider)) => (id, Valid(provider))
+            case (id, Right(tile)) => (id, Valid(tile))
           }).sequence
 
           (pure |@| overridden |@| tiles).map({ case (_, tree, ts) => eval(ts, tree, 0) })

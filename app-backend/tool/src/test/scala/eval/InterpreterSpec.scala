@@ -468,7 +468,7 @@ class InterpreterSpec
         val maybeTile = lazytile.evaluateDouble
         requests.length should be (1)
         val tile = maybeTile.get
-        tile.get(21, 32) should be (tile.get(20, 32) + 1)
+        tile.get(21, 32) should be (tile.get(20, 32) + 2)
       case i@Invalid(_) =>
         fail(s"$i")
     }
@@ -493,7 +493,7 @@ class InterpreterSpec
         val maybeTile = lazytile.evaluateDouble
         requests.length should be (1)
         val tile = maybeTile.get
-        tile.get(21, 32) should be (tile.get(20, 32) + 1)
+        tile.get(21, 32) should be (tile.get(20, 32) + 2)
       case i@Invalid(_) =>
         fail(s"$i")
     }
