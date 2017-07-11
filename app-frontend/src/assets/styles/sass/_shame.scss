@@ -1335,6 +1335,7 @@ nav .btn-group {
     background-color: $off-white !important;
     display: flex;
     flex: 1;
+    transition: all 0.1s;
 }
 
 .btn-square.really-square {
@@ -1614,6 +1615,8 @@ rf-export-item {
   display: flex;
   flex-direction: column;
   border-radius: 5px;
+  z-index: 1;
+  box-shadow: 4px 4px 4px rgba(0,0,0,0.25);
 }
 
 .node-header {

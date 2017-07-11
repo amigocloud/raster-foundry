@@ -5,7 +5,7 @@ const Map = require('es6-map');
 
 export default class DiagramContainerController {
     constructor( // eslint-disable-line max-params
-        $element, $scope, $state, $timeout, $compile, $document,
+        $element, $scope, $state, $timeout, $compile, $document, $window,
         mousetipService, toolService
     ) {
         'ngInject';
@@ -15,6 +15,7 @@ export default class DiagramContainerController {
         this.$timeout = $timeout;
         this.$compile = $compile;
         this.$document = $document;
+        this.$window = $window;
         this.mousetipService = mousetipService;
         this.toolService = toolService;
     }
@@ -22,6 +23,8 @@ export default class DiagramContainerController {
     $onInit() {
         let $scope = this.$scope;
         let $compile = this.$compile;
+
+        this.scale = 1;
 
         $scope.$on('$destroy', this.$onDestroy.bind(this));
 
@@ -37,7 +40,7 @@ export default class DiagramContainerController {
 
         joint.shapes.html.ElementView = joint.dia.ElementView.extend({
             template: `
-                <div class="diagram-cell ">
+                <div class="diagram-cell">
                   <rf-diagram-node-header
                     data-model="model"
                     data-invalid="model.get('invalid')"
@@ -48,6 +51,10 @@ export default class DiagramContainerController {
                     data-model="model"
                     on-change="onChange({sourceId: sourceId, project: project, band: band})"
                   ></rf-input-node>
+                  <rf-operation-node
+                    ng-if="model.get('cellType') === 'Function'"
+                    data-model="model"
+                  ></rf-operation-node>
                 </div>`,
             initialize: function () {
                 _.bindAll(this, 'updateBox');
@@ -67,15 +74,19 @@ export default class DiagramContainerController {
             },
             updateBox: function () {
                 let bbox = this.model.getBBox();
-                this.scope.model = this.model;
-                this.scope.onChange = this.model.get('onChange');
-                this.scope.sourceId = this.model.get('id');
+                if (this.model !== this.scope.model) {
+                    this.scope.onChange = this.model.get('onChange');
+                    this.scope.sourceId = this.model.get('id');
+                    this.scope.model = this.model;
+                }
+
+                let origin = this.paper ? this.paper.options.origin : {x: 0, y: 0};
 
                 this.$box.css({
                     width: bbox.width,
                     height: bbox.height,
-                    left: bbox.x,
-                    top: bbox.y
+                    left: bbox.x + origin.x,
+                    top: bbox.y + origin.y
                 });
             },
             removeBox: function () {
@@ -99,6 +110,9 @@ export default class DiagramContainerController {
         if (this.isComparing) {
             this.cancelComparison();
         }
+        if (this.onWindowResize) {
+            this.$window.removeEventListner('resize', this.onWindowResize);
+        }
     }
 
     getToolLabel(json) {
@@ -121,7 +135,13 @@ export default class DiagramContainerController {
                 height: $(this.workspaceElement).height(),
                 width: $(this.workspaceElement).width(),
                 gridSize: 25,
-                drawGrid: true,
+                drawGrid: {
+                    name: 'doubleMesh',
+                    args: [
+                        {thickness: 1, scaleFactor: 12},
+                        {color: 'lightgrey', thickness: 1, scaleFactor: 6}
+                    ]
+                },
                 model: this.graph,
                 clickThreshold: 4
             });
@@ -129,16 +149,35 @@ export default class DiagramContainerController {
                 color: '#aaa',
                 thickness: 1
             });
-            this.paper.on('blank:pointerclick', this.onPaperClick.bind(this));
             this.paper.on('cell:pointerdown', this.onCellClick.bind(this));
+            this.paper.on('blank:pointerclick', this.onPaperClick.bind(this));
             this.paper.on('blank:pointerdown', () => {
                 this.panActive = true;
                 this.$scope.$evalAsync();
             });
             this.paper.on('blank:pointerup', () => {
                 this.panActive = false;
+                delete this.lastMousePos;
                 this.$scope.$evalAsync();
             });
+            this.paper.$el.on('mousewheel', this.onMouseWheel.bind(this));
+
+            this.onWindowResize = () => {
+                // TODO figure out how to scale the canvas then
+                //      resize it to fit available area while scaled
+                let width = this.$element[0].offsetWidth; // / (
+                //     this.scale ? Math.pow(this.scale, 2) : 1
+                // );
+                let height = this.$element[0].offsetHeight; // / (
+                //     this.scale ? Math.pow(this.scale, 2) : 1
+                // );
+                this.paper.setDimensions(
+                    width, height
+                );
+                console.log(width, height);
+            };
+            this.$window.addEventListener('resize', this.onWindowResize);
+            this.$element.on('mousemove', this.onMouseMove.bind(this));
         }
 
         if (this.shapes) {
@@ -152,6 +191,47 @@ export default class DiagramContainerController {
                 marginX: padding,
                 marginY: padding
             });
+        }
+    }
+
+    onMouseWheel(mouseEvent) {
+        if (mouseEvent.originalEvent.wheelDelta > 0) {
+            this.scale = this.scale * 1.25;
+        } else {
+            this.scale = this.scale / 1.25;
+        }
+        // TODO change origin based on mouse position during scroll
+        $(this.$element[0].children[0]).css({
+            transform: `scale(${this.scale}, ${this.scale})`
+        });
+        this.onWindowResize();
+        console.log('scale', this.scale);
+    }
+
+    onMouseMove(mouseEvent) {
+        if (this.panActive) {
+            let translate = {
+                x: this.lastMousePos ? this.lastMousePos.x - mouseEvent.offsetX : 0,
+                y: this.lastMousePos ? this.lastMousePos.y - mouseEvent.offsetY : 0
+            };
+            this.lastMousePos = {x: mouseEvent.offsetX, y: mouseEvent.offsetY};
+            let origin = this.paper.options.origin;
+            this.paper.translate(origin.x - translate.x, origin.y - translate.y);
+            if (this.shapes) {
+                this.shapes.forEach((shape) => {
+                    // TODO figure out how to move shapes without re-rendering (css only)
+                    // if (shape.getBBox) {
+                    //     let bbox = shape.getBBox();
+                    // }
+
+                    // shape.translate(origin.x, origin.y);
+                    // if (shape.position) {
+                    //     let oldPos = shape.position();
+                    //     shape.position(oldPos.x - translate.x, oldPos.y - translate.y);
+                    // }
+                });
+            }
+            this.$scope.$evalAsync();
         }
     }
 
@@ -263,7 +343,7 @@ export default class DiagramContainerController {
                 shapes.push(rectangle);
 
                 if (input.parent) {
-                    let firstPort = input.parent.portData.ports.filter(i => {
+                    let firstPort = input.parent.attributes.ports.items.filter(i => {
                         return i.group === 'inputs' && !i.isConnected;
                     })[0];
 
