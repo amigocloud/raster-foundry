@@ -108,12 +108,8 @@
 
 .brand {
   display: inline-block;
-  padding: 1rem 3rem;
+  padding: 0.5rem 0 0.5rem 2rem;
   vertical-align: middle;
-
-  > img {
-    max-width: 2.5rem;
-  }
 }
 
 .navbar-vertical-divider {

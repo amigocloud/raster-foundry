@@ -1,4 +1,4 @@
-import assetLogo from '../../../../assets/images/logo-raster-foundry.png';
+import assetLogo from '../../../../assets/images/logo_conida_3.png';
 
 export default class NavBarController {
     constructor( // eslint-disable-line max-params

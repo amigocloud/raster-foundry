@@ -20,7 +20,7 @@ then
     elif [ "${1:-}" = "--with-airflow" ]
     then
         docker-compose -f "${DIR}/../docker-compose.yml" \
-                       -f "${DIR}/../docker-compose.airflow.yml" up
+                       -f "${DIR}/../docker-compose.airflow.yml" up -d
     elif [ "${1:-}" = "--with-metrics" ]
     then
         docker-compose -f "${DIR}/../docker-compose.yml" \
