@@ -1,8 +1,6 @@
 /* global BUILDCONFIG, HELPCONFIG, _ */
 
-let assetLogo = BUILDCONFIG.LOGOFILE ?
-    require(`../../../../assets/images/${BUILDCONFIG.LOGOFILE}`) :
-    require('../../../../assets/images/raster-foundry-logo.svg');
+let assetLogo = require('../../../../assets/images/logo_conida_3.png');
 
 assetLogo = BUILDCONFIG.LOGOURL || assetLogo;
 

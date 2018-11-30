@@ -1,9 +1,7 @@
 /* globals BUILDCONFIG Auth0Lock heap $ window Uint8Array*/
 import ApiActions from '_redux/actions/api-actions';
 
-let assetLogo = BUILDCONFIG.LOGOFILE ?
-    require(`../../../assets/images/${BUILDCONFIG.LOGOFILE}`) :
-    require('../../../assets/images/raster-foundry-logo.svg');
+let assetLogo = require('../../../assets/images/logo_conida_3.png');
 
 assetLogo = BUILDCONFIG.LOGOURL || assetLogo;
 

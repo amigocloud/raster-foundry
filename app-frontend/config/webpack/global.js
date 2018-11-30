@@ -285,11 +285,11 @@ module.exports = function (_path) {
                 heapLoad: DEVELOPMENT ? '2743344218' : '3505855839',
                 gtagId: GOOGLE_TAG_ID,
                 development: DEVELOPMENT,
-                APP_NAME: 'Raster Foundry'
+                APP_NAME: 'CONIDA'
             }),
             new webpack.DefinePlugin({
                 'BUILDCONFIG': {
-                    APP_NAME: JSON.stringify('Raster Foundry'),
+                    APP_NAME: JSON.stringify('CONIDA'),
                     BASEMAPS: basemaps,
                     API_HOST: JSON.stringify(''),
                     HERE_APP_ID: JSON.stringify(HERE_APP_ID),
