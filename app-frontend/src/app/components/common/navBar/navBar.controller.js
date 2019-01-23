@@ -4,8 +4,6 @@ let assetLogo = require('../../../../assets/images/logo_conida_3.png');
 
 assetLogo = BUILDCONFIG.LOGOURL || assetLogo;
 
-const Plyr = require('plyr/dist/plyr.js');
-
 export default class NavBarController {
     constructor( // eslint-disable-line max-params
         $rootScope, $scope, $log, $state, $document, $sce, $timeout, APP_CONFIG, authService
@@ -65,12 +63,17 @@ export default class NavBarController {
     }
 
     initPlyr() {
-        this.$timeout(() => {
-            this.plyr = new Plyr('#player');
-            this.plyr.on('enterfullscreen', this.onEnterFullscreen.bind(this));
-            this.plyr.on('exitfullscreen', this.onExitFullscreen.bind(this));
-            this.showVideo = true;
-        }, 100);
+        require(['plyr/dist/plyr.js', 'plyr/dist/plyr.css'], (require) => {
+            this.$timeout(() => {
+                const Plyr = require('plyr/dist/plyr.js');
+                require('plyr/dist/plyr.css');
+                this.plyr = new Plyr('#player');
+                this.plyr.on('enterfullscreen', this.onEnterFullscreen.bind(this));
+                this.plyr.on('exitfullscreen', this.onExitFullscreen.bind(this));
+                this.showVideo = true;
+            }, 100);
+        }, (error) => {
+        });
     }
 
     onEnterFullscreen() {
@@ -130,10 +133,6 @@ export default class NavBarController {
 
     hideLabels() {
         return this.$state.current.name.startsWith('projects.edit');
-    }
-
-    signin() {
-        this.authService.login();
     }
 
     logout() {

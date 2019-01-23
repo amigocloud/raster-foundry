@@ -1,0 +1,15 @@
+<configuration>
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <logger name="com.rasterfoundry.backsplash" level="${RF_LOG_LEVEL:-INFO}"/>
+  <logger name="org.http4s.blaze.channel.nio1" level="WARN"/>
+  <logger name="geotrellis.server" level="WARN"/>
+
+  <root level="INFO">
+    <appender-ref ref="STDOUT" />
+  </root>
+</configuration>

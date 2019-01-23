@@ -13,6 +13,7 @@ export default (app) => {
             rollbarWrapperService, intercomService, $resource, $ngRedux, $location
 
         ) {
+            'ngInject';
             this.localStorage = localStorage;
             this.jwtHelper = jwtHelper;
             this.$q = $q;
@@ -210,13 +211,14 @@ export default (app) => {
                     this.localStorage.remove('authUrlRestore');
                 } else if (this.jwtHelper.isTokenExpired(accessToken)) {
                     this.localStorage.remove('accessToken');
-                    this.$state.go('login');
+                    return false;
                 } else {
                     this.loginLock.show();
                 }
             } catch (e) {
                 this.loginLock.show();
             }
+            return true;
         }
 
         onTokenCreated(authResult) {

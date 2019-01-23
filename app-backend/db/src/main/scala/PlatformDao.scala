@@ -4,6 +4,7 @@ import java.util.UUID
 
 import com.rasterfoundry.database.filter.Filters._
 import com.rasterfoundry.database.Implicits._
+import com.rasterfoundry.database.util.Email
 import com.rasterfoundry.datamodel._
 import com.lonelyplanet.akka.http.extensions.{PageRequest, Order}
 import doobie.free.connection
@@ -61,12 +62,26 @@ object PlatformDao extends Dao[Platform] {
                 "ugr.group_role" -> Order.Asc))
         )
         if (isAdmin) {
-          userListPage
+          userListPage.map { usersPage =>
+            usersPage.copy(
+              results = usersPage.results map { userWithGR =>
+                userWithGR.copy(
+                  planetCredential = Credential(Some("")),
+                  dropboxCredential = Credential(Some(""))
+                )
+              }
+            )
+          }
         } else {
           userListPage.map { usersPage: PaginatedResponse[User.WithGroupRole] =>
             {
-              usersPage.copy(results = usersPage.results map {
-                _.copy(email = "")
+              usersPage.copy(results = usersPage.results map { userWithGR =>
+                userWithGR.copy(
+                  planetCredential = Credential(Some("")),
+                  dropboxCredential = Credential(Some("")),
+                  name = Email.obfuscate(userWithGR.name),
+                  email = Email.obfuscate(userWithGR.email)
+                )
               })
             }
           }
@@ -264,6 +279,7 @@ object PlatformDao extends Dao[Platform] {
           ON prj.id = stp.project_id
         WHERE stp.scene_id = ${sceneIdString}
           AND u.id IN ${userIdsString}
+          AND ugr.is_active = true
       """).query[PlatformWithUsersSceneProjects].to[List]
   }
 

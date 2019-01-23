@@ -6,8 +6,11 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Route
 import cats.effect.IO
 import com.rasterfoundry.api.utils.queryparams.QueryParametersCommon
-import com.rasterfoundry.authentication.Authentication
-import com.rasterfoundry.common.{CommonHandlers, UserErrorHandler}
+import com.rasterfoundry.akkautil.{
+  Authentication,
+  CommonHandlers,
+  UserErrorHandler
+}
 import com.rasterfoundry.database._
 import com.rasterfoundry.datamodel._
 import com.dropbox.core.{DbxAppInfo, DbxRequestConfig, DbxWebAuth}
@@ -81,7 +84,11 @@ trait UserRoutes
   }
 
   def getDbOwnUser: Route = authenticate { user =>
-    complete(UserDao.unsafeGetUserById(user.id).transact(xa).unsafeToFuture())
+    complete(
+      UserDao
+        .unsafeGetUserById(user.id, Some(true))
+        .transact(xa)
+        .unsafeToFuture())
   }
 
   def updateAuth0User: Route = authenticate { user =>
@@ -165,7 +172,10 @@ trait UserRoutes
 
   def getUserRoles: Route = authenticate { user =>
     complete {
-      UserGroupRoleDao.listByUser(user).transact(xa).unsafeToFuture()
+      UserGroupRoleDao
+        .listByUserWithRelated(user)
+        .transact(xa)
+        .unsafeToFuture()
     }
   }
 
