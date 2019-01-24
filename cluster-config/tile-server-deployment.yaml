@@ -1,0 +1,124 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose --file docker-compose.yml convert
+    kompose.version: 1.17.0 (a74acad)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: tile-server
+  name: tile-server
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        io.kompose.service: tile-server
+    spec:
+      containers:
+      - args:
+        - tile/run
+        - -Dcom.sun.management.jmxremote.rmi.port=9020
+        - -Dcom.sun.management.jmxremote=true
+        - -Dcom.sun.management.jmxremote.port=9020
+        - -Dcom.sun.management.jmxremote.ssl=false
+        - -Dcom.sun.management.jmxremote.authenticate=false
+        - -Dcom.sun.management.jmxremote.local.only=false
+        - -Djava.rmi.server.hostname=localhost
+        command:
+        - ./sbt
+        env:
+        - name: AIRFLOW_DAG_CONCURRENCY
+          value: "4"
+        - name: AIRFLOW_POSTGRES_DB
+          value: airflow
+        - name: AUTH0_CLIENT_ID
+          value: yzFnu34TqM18VwO1ugAos3n07SXcaQzS
+        - name: AUTH0_CLIENT_SECRET
+          value: hKj5ltrQ_0xDUlYTruSwxVW9OOpOIR9F7WUT3wkM-hOiIsrXi_TTtSJdiWCFTui8
+        - name: AUTH0_DOMAIN
+          value: amigocloud-conida.auth0.com
+        - name: AUTH0_MANAGEMENT_CLIENT_ID
+          value: PLACEHOLDER
+        - name: AUTH0_MANAGEMENT_SECRET
+          value: PLACEHOLDER
+        - name: AWS_DEFAULT_REGION
+          value: us-east-1
+        - name: AWS_PROFILE
+          value: raster-foundry
+        - name: BATCH_INGEST_JOB_NAME
+          value: PLACEHOLDER
+        - name: BATCH_INGEST_JOB_QUEUE
+          value: PLACEHOLDER
+        - name: COURSIER_CACHE
+          value: /root/.coursier
+        - name: DATA_BUCKET
+          value: PLACEHOLDER
+        - name: ENVIRONMENT
+          value: development
+        - name: INGEST_STATUS_BUCKET
+          value: PLACEHOLDER
+        - name: POSTGRES_DB
+          value: rasterfoundry
+        - name: POSTGRES_PASSWORD
+          value: rasterfoundry
+        - name: POSTGRES_USER
+          value: rasterfoundry
+        - name: RF_LOG_LEVEL
+          value: INFO
+        - name: ROLLBAR_CLIENT_TOKEN
+          value: PLACEHOLDER
+        - name: ROLLBAR_SERVER_TOKEN
+          value: PLACEHOLDER
+        - name: THUMBNAIL_BUCKET
+          value: PLACEHOLDER
+        - name: TILE_SERVER_BUCKET
+          value: PLACEHOLDER
+        - name: TILE_SERVER_LOCATION
+          value: PLACEHOLDER
+        image: openjdk:8-jre
+        name: tile-server
+        ports:
+        - containerPort: 9900
+        - containerPort: 9020
+        resources: {}
+        volumeMounts:
+        - mountPath: /opt/raster-foundry/app-backend/
+          name: tile-server-claim0
+        - mountPath: /root/.coursier
+          name: tile-server-claim1
+        - mountPath: /root/.sbt
+          name: tile-server-claim2
+        - mountPath: /root/.bintray
+          name: tile-server-claim3
+        - mountPath: /root/.aws
+          name: tile-server-claim4
+          readOnly: true
+        - mountPath: /root/.ivy2
+          name: tile-server-claim5
+        workingDir: /opt/raster-foundry/app-backend/
+      restartPolicy: Always
+      volumes:
+      - name: tile-server-claim0
+        persistentVolumeClaim:
+          claimName: tile-server-claim0
+      - name: tile-server-claim1
+        persistentVolumeClaim:
+          claimName: tile-server-claim1
+      - name: tile-server-claim2
+        persistentVolumeClaim:
+          claimName: tile-server-claim2
+      - name: tile-server-claim3
+        persistentVolumeClaim:
+          claimName: tile-server-claim3
+      - name: tile-server-claim4
+        persistentVolumeClaim:
+          claimName: tile-server-claim4
+          readOnly: true
+      - name: tile-server-claim5
+        persistentVolumeClaim:
+          claimName: tile-server-claim5
+status: {}

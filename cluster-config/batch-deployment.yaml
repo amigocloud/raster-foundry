@@ -1,0 +1,98 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose --file docker-compose.yml convert
+    kompose.version: 1.17.0 (a74acad)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: batch
+  name: batch
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        io.kompose.service: batch
+    spec:
+      containers:
+      - args:
+        - rf
+        env:
+        - name: AIRFLOW_DAG_CONCURRENCY
+          value: "4"
+        - name: AIRFLOW_POSTGRES_DB
+          value: airflow
+        - name: AUTH0_CLIENT_ID
+          value: yzFnu34TqM18VwO1ugAos3n07SXcaQzS
+        - name: AUTH0_CLIENT_SECRET
+          value: hKj5ltrQ_0xDUlYTruSwxVW9OOpOIR9F7WUT3wkM-hOiIsrXi_TTtSJdiWCFTui8
+        - name: AUTH0_DOMAIN
+          value: amigocloud-conida.auth0.com
+        - name: AUTH0_MANAGEMENT_CLIENT_ID
+          value: PLACEHOLDER
+        - name: AUTH0_MANAGEMENT_SECRET
+          value: PLACEHOLDER
+        - name: AWS_DEFAULT_REGION
+          value: us-east-1
+        - name: AWS_PROFILE
+          value: raster-foundry
+        - name: BATCH_INGEST_JOB_NAME
+          value: PLACEHOLDER
+        - name: BATCH_INGEST_JOB_QUEUE
+          value: PLACEHOLDER
+        - name: DATA_BUCKET
+          value: PLACEHOLDER
+        - name: ENVIRONMENT
+          value: development
+        - name: INGEST_STATUS_BUCKET
+          value: PLACEHOLDER
+        - name: LOCAL_INGEST_CORES
+          value: "2"
+        - name: LOCAL_INGEST_MEM_GB
+          value: "4"
+        - name: POSTGRES_DB
+          value: rasterfoundry
+        - name: POSTGRES_PASSWORD
+          value: rasterfoundry
+        - name: POSTGRES_USER
+          value: rasterfoundry
+        - name: RF_HOST
+          value: http://rasterfoundry.com:9000
+        - name: ROLLBAR_CLIENT_TOKEN
+          value: PLACEHOLDER
+        - name: ROLLBAR_SERVER_TOKEN
+          value: PLACEHOLDER
+        - name: THUMBNAIL_BUCKET
+          value: PLACEHOLDER
+        - name: TILE_SERVER_BUCKET
+          value: PLACEHOLDER
+        - name: TILE_SERVER_LOCATION
+          value: PLACEHOLDER
+        image: raster-foundry-batch
+        name: batch
+        resources: {}
+        volumeMounts:
+        - mountPath: /opt/raster-foundry/app-tasks/rf/
+          name: batch-claim0
+        - mountPath: /opt/raster-foundry/jars/
+          name: batch-claim1
+        - mountPath: /root/.aws
+          name: batch-claim2
+          readOnly: true
+      restartPolicy: Always
+      volumes:
+      - name: batch-claim0
+        persistentVolumeClaim:
+          claimName: batch-claim0
+      - name: batch-claim1
+        persistentVolumeClaim:
+          claimName: batch-claim1
+      - name: batch-claim2
+        persistentVolumeClaim:
+          claimName: batch-claim2
+          readOnly: true
+status: {}

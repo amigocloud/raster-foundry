@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose --file docker-compose.yml convert
+    kompose.version: 1.17.0 (a74acad)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: tile-server
+  name: tile-server
+spec:
+  ports:
+  - name: "9900"
+    port: 9900
+    targetPort: 9900
+  - name: "9020"
+    port: 9020
+    targetPort: 9020
+  selector:
+    io.kompose.service: tile-server
+status:
+  loadBalancer: {}

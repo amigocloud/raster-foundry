@@ -1,0 +1,78 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose --file docker-compose.yml convert
+    kompose.version: 1.17.0 (a74acad)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: postgres
+  name: postgres
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        io.kompose.service: postgres
+    spec:
+      containers:
+      - env:
+        - name: AIRFLOW_DAG_CONCURRENCY
+          value: "4"
+        - name: AIRFLOW_POSTGRES_DB
+          value: airflow
+        - name: AUTH0_CLIENT_ID
+          value: yzFnu34TqM18VwO1ugAos3n07SXcaQzS
+        - name: AUTH0_CLIENT_SECRET
+          value: hKj5ltrQ_0xDUlYTruSwxVW9OOpOIR9F7WUT3wkM-hOiIsrXi_TTtSJdiWCFTui8
+        - name: AUTH0_DOMAIN
+          value: amigocloud-conida.auth0.com
+        - name: AUTH0_MANAGEMENT_CLIENT_ID
+          value: PLACEHOLDER
+        - name: AUTH0_MANAGEMENT_SECRET
+          value: PLACEHOLDER
+        - name: AWS_DEFAULT_REGION
+          value: us-east-1
+        - name: AWS_PROFILE
+          value: raster-foundry
+        - name: BATCH_INGEST_JOB_NAME
+          value: PLACEHOLDER
+        - name: BATCH_INGEST_JOB_QUEUE
+          value: PLACEHOLDER
+        - name: DATA_BUCKET
+          value: PLACEHOLDER
+        - name: ENVIRONMENT
+          value: development
+        - name: INGEST_STATUS_BUCKET
+          value: PLACEHOLDER
+        - name: POSTGRES_DB
+          value: rasterfoundry
+        - name: POSTGRES_PASSWORD
+          value: rasterfoundry
+        - name: POSTGRES_USER
+          value: rasterfoundry
+        - name: ROLLBAR_CLIENT_TOKEN
+          value: PLACEHOLDER
+        - name: ROLLBAR_SERVER_TOKEN
+          value: PLACEHOLDER
+        - name: THUMBNAIL_BUCKET
+          value: PLACEHOLDER
+        - name: TILE_SERVER_BUCKET
+          value: PLACEHOLDER
+        - name: TILE_SERVER_LOCATION
+          value: PLACEHOLDER
+        image: quay.io/azavea/postgis:2.3-postgres9.6-slim
+        name: postgres
+        resources: {}
+        volumeMounts:
+        - mountPath: /tmp/data/
+          name: postgres-claim0
+      restartPolicy: Always
+      volumes:
+      - name: postgres-claim0
+        persistentVolumeClaim:
+          claimName: postgres-claim0
+status: {}

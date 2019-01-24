@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose --file docker-compose.yml convert
+    kompose.version: 1.17.0 (a74acad)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: nginx-tiler
+  name: nginx-tiler
+spec:
+  ports:
+  - name: "9101"
+    port: 9101
+    targetPort: 443
+  selector:
+    io.kompose.service: nginx-tiler
+status:
+  loadBalancer: {}

@@ -1,0 +1,32 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose --file docker-compose.yml convert
+    kompose.version: 1.17.0 (a74acad)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: memcached
+  name: memcached
+spec:
+  replicas: 1
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        io.kompose.service: memcached
+    spec:
+      containers:
+      - args:
+        - -m
+        - "4096"
+        - -c
+        - "8192"
+        - -I
+        - 5242880b
+        image: memcached:1.4-alpine
+        name: memcached
+        resources: {}
+      restartPolicy: Always
+status: {}
