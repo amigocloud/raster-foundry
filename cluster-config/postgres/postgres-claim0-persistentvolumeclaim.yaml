@@ -6,6 +6,7 @@ metadata:
     io.kompose.service: postgres-claim0
   name: postgres-claim0
 spec:
+  storageClassName: postgres-pv
   accessModes:
   - ReadWriteOnce
   resources:
