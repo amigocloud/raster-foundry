@@ -1,0 +1,28 @@
+apiVersion: extensions/v1beta1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: postgres
+  name: postgres
+spec:
+  containers:
+  - env:
+    - name: POSTGRES_DB
+      value: rasterfoundry
+    - name: POSTGRES_PASSWORD
+      value: rasterfoundry
+    - name: POSTGRES_USER
+      value: rasterfoundry
+    image: quay.io/azavea/postgis:2.3-postgres9.6-slim
+    name: postgres
+    resources: {}
+    volumeMounts:
+    - mountPath: /tmp/data/
+      name: postgres-claim0
+  restartPolicy: Always
+  volumes:
+  - name: postgres-claim0
+    persistentVolumeClaim:
+      claimName: postgres-claim0
+status: {}
