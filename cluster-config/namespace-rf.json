@@ -1,0 +1,10 @@
+{
+  "kind": "Namespace",
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "raster-foundry",
+    "labels": {
+      "name": "raster-foundry"
+    }
+  }
+}
