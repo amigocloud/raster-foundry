@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: postgres-pc
+  name: postgres-pv
 spec:
   capacity:
     storage: 1Gi
